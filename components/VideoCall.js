@@ -22,8 +22,8 @@ import axios from 'axios';
 
 const VideoCall = () => {
   let _engine;
-  const [appId, setAppId] = useState('c35af1410df9462a88e14d7334508b1b');
-  const [token, setToken] = useState("006c35af1410df9462a88e14d7334508b1bIADqk7+HMBQQkkfO8iqS52FfK/8jn4ZTMHDPXd/W9NCLD92N+lQAAAAAEADsTG0XTNaYYQEAAQBN1phh");
+  const [appId, setAppId] = useState('f6a3d3fdd784401b981fe52beab9ea10');
+  const [token, setToken] = useState("006f6a3d3fdd784401b981fe52beab9ea10IACwXgxnsKHL54tef2+wyyyGV16/tDyLEIbcY83UW8p9892N+lRXoFHlIgC4jSbtXeqgYQQAAQDdJcdhAgDdJcdhAwDdJcdhBADdJcdh");
   const [channelName, setChannelName] = useState('fachri-call-2');
   const [joinSucceed, setJoinSucceed] = useState(false);
   const [peerIds, setPeerIds] = useState([]);
@@ -95,14 +95,15 @@ const VideoCall = () => {
 
   startCall = async () => {
     await init();
+    console.log('token dari BE', token);
 
     console.log('start call',_engine);
     // Join Channel using null token and channel name
     await _engine?.joinChannel(
       token,
       channelName,
-      userId,
-      0
+      null,
+      2882341273 //! ini adalah uid yang harus sesuai ketika request token
     );
   };
 

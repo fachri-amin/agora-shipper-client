@@ -39,6 +39,7 @@ const Pricing = () => {
     });
     const [listPrice, setListPrice] = useState([]);
     const [order, setOrder] = useState();
+    const [pickupDetail, setPickupDetail] = useState([]);
     const [trackings, setTrackings] = useState();
     const [errors, setErrors] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -47,7 +48,8 @@ const Pricing = () => {
         setOrder(null)
         setTrackings(null)
         setIsLoading(true)
-        axios.post(`${shipperBaseUrl}/v3/pricing/domestic`, 
+        setPickupDetail([])
+        axios.post(`${shipperBaseUrl}/v3/pricing/domestic`, //add /{rate_type} to spesific rate type pricin ["instant", "regular" , "express" "trucking" , "same-day"]
             data,
             {
                 headers: {
@@ -139,10 +141,10 @@ const Pricing = () => {
 
     const handleTracking = (order_id) => {
         axios.get(`${shipperBaseUrl}/v3/order/${order_id}`,
-        {
-            headers: {
-                'X-API-Key': apiKey
-            },
+            {
+                headers: {
+                    'X-API-Key': apiKey
+                },
             })
             .then(res => {
                 setTrackings(res.data.data.trackings)
@@ -160,15 +162,14 @@ const Pricing = () => {
     const handleDeleteOrder = (order_id) => {
         console.log('order_id for delete', order_id);
         axios.delete(`${shipperBaseUrl}/v3/order/${order_id}`,
-        {
-            headers: {
-                'X-API-Key': apiKey
-            },
-            data: {
-                "reason": "Stok habis"
-            }
-        }
-        )
+            {
+                headers: {
+                    'X-API-Key': apiKey
+                },
+                data: {
+                    "reason": "Stok habis"
+                }
+            })
             .then(res => {
                 setOrder(null)
                 console.log('berhasil');
@@ -181,6 +182,36 @@ const Pricing = () => {
                     setErrors([]);
                 }, 3000)
             });
+    }
+
+    const handleRequestPickup = (order_id) => {
+        axios.post(`${shipperBaseUrl}/v3/pickup`,
+        {
+            data: {
+                order_activation: {
+                    order_id: [
+                        order_id
+                    ],
+                    pickup_time: "2021-05-27T17:58:00+07:00"
+                }
+            }
+        },
+        {
+            headers: {
+                'X-API-Key': apiKey
+            },
+        })
+        .then(res => {
+            setPickupDetail(res.data.data.order_activations)
+            console.log(res.data.data);
+        })
+        .catch(err => {
+            console.log('error tracking', err);
+            setErrors([...errors, 'terjadi kesalahan'])
+            setInterval(() => {
+                setErrors([]);
+            }, 3000)
+        });
     }
 
     return (
@@ -317,11 +348,36 @@ const Pricing = () => {
                         <Text style={styles.locationItemContainer}>
                             Total ongkir : Rp. {order.courier.amount}
                         </Text>
+
+                        <TouchableOpacity
+                            onPress={() => handleRequestPickup(order.order_id)}
+                            style={styles.button}
+                            disabled={isLoading}
+                        >
+                            <Text style={styles.buttonText}>{isLoading ? 'Loading...' : 'Request Pickup'}</Text>
+                        </TouchableOpacity>
+
+                        {pickupDetail.map(item => (
+                            <View style={styles.locationItemContainer}>
+                                <Text>
+                                    Order ID : {item.order_id}
+                                </Text>
+                                <Text>
+                                    Pickup Code : {item.pickup_code}
+                                </Text>
+                                <Text>
+                                    Active : {item.is_activate ? 'Yes' : 'No'}
+                                </Text>
+                                <Text>
+                                    Pickup time : {item.pickup_time}
+                                </Text>
+                            </View>
+                        ))}
                         
-                        <View style={{flexDirection: "row"}}>
+                        <View style={{flexDirection: "row", marginTop: 30}}>
                             <TouchableOpacity
                                 onPress={() => handleTracking(order.order_id)}
-                                style={styles.button}
+                                style={styles.buttonTracking}
                                 disabled={isLoading}
                             >
                                 <Text style={styles.buttonText}>{isLoading ? 'Loading...' : 'Tracking'}</Text>
@@ -379,6 +435,15 @@ const styles = StyleSheet.create({
     },
     button: {
         backgroundColor: 'blue',
+        alignSelf: 'flex-start',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        textAlign: 'center',
+        borderRadius: 4,
+        marginTop: 10,
+    },
+    buttonTracking: {
+        backgroundColor: 'green',
         alignSelf: 'flex-start',
         paddingVertical: 10,
         paddingHorizontal: 20,
